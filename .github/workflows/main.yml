@@ -1,0 +1,37 @@
+name: OWASP ZAP Baseline Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  zap-baseline-scan:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Start OWASP ZAP Baseline Scan
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.8.0
+        with:
+          # The URL of the target web application to scan
+          target: 'https://example.com'
+          # Rules to ignore (optional), can be a regex pattern
+          cmd_options: '-t https://example.com -r zap_report.html -d'
+          # Threshold for the scan to pass or fail (optional)
+          fail_action: 'true'
+          # Generate HTML report of scan results
+          output_path: './zap_report.html'
+          
+      # Upload the ZAP HTML report as an artifact
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap_report
+          path: zap_report.html
