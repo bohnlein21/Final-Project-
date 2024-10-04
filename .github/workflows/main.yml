@@ -1,4 +1,7 @@
-name: OWASP ZAP Baseline Scan
+name: ZAP Baseline Scan
+permissions:
+  issues: write
+
 
 on:
   push:
@@ -9,25 +12,15 @@ on:
       - main
 
 jobs:
-  zap-baseline-scan:
+  zap-scan:
+    name: ZAP Scan
     runs-on: ubuntu-latest
-    steps:
-      # Checkout the code (if applicable)
-      - name: Checkout code
-        uses: actions/checkout@v2
 
-      # Run OWASP ZAP Baseline Scan
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.8.0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.12.0
         with:
           target: 'https://thinking-tester-contact-list.herokuapp.com/?response_type=code&client_id=bue83b3b34&redirect_uri=https%3A%2F%2Foauth.pstmn.io%2Fv1%2Fcallback'
-          cmd_options: '-r zap_report.html -d'
-          fail_action: 'true'
-          output_path: './zap_report.html'
-
-      # Upload ZAP HTML Report as artifact
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: zap_report
-          path: zap_report.html
