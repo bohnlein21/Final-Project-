@@ -1,5 +1,7 @@
-name: Run Tests
 
+
+name: Run Test
+            
 # Trigger on push or pull request to any branch
 on:
   push:
