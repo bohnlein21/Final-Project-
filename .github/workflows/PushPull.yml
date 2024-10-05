@@ -1,44 +1,24 @@
-name: CI Test Workflow
+name: OWASP ZAP Baseline Scan
 
-# Trigger the workflow on push or pull request to any branch
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
     branches:
-      - '**'
+      - main
 
 jobs:
-  build-and-test:
+  zap-baseline-scan:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14, 16] # You can test across different Node.js versions
-
     steps:
-      # Checkout the repository code
+      # Checkout the code (if applicable)
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      # Set up Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
+      # Run OWASP ZAP Baseline Scan
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.8.0
         with:
-          node-version: ${{ matrix.node-version }}
-
-      # Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # Run tests
-      - name: Run tests
-        run: npm test
-
-      # Optionally, upload test reports or coverage reports as artifacts
-      - name: Upload Test Reports
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-report
-          path: ./test-reports
+          target: 'https://thinking-tester-contact-list.herokuapp.com/?response_type=code&client_id=bue83b3b34&redirect_uri=https%3A%2F%2Foauth.pstmn.io%2Fv1%2Fcallback'
+          cmd
