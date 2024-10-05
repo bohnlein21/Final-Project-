@@ -1,43 +1,44 @@
-name: Run Tests on Push or Pull Request
+name: CI Test Workflow
 
-# Trigger workflow on push or pull request to main or any branch
+# Trigger the workflow on push or pull request to any branch
 on:
   push:
     branches:
-      - '**'  # Run on any branch (change to 'main' if you want to restrict to main branch)
+      - '**'
   pull_request:
     branches:
-      - '**'  # Run on any pull request targeting any branch
+      - '**'
 
 jobs:
-  test:
-    # Set the environment to run tests (Ubuntu latest)
+  build-and-test:
     runs-on: ubuntu-latest
 
-    # Job Steps
+    strategy:
+      matrix:
+        node-version: [14, 16] # You can test across different Node.js versions
+
     steps:
-      # Checkout the code from the repository
-      - name: Checkout repository
+      # Checkout the repository code
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up Node.js environment (if your tests need it)
-      - name: Set up Node.js
+      # Set up Node.js environment
+      - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'  # Specify your Node.js version
+          node-version: ${{ matrix.node-version }}
 
-      # Install dependencies (npm install or your package manager)
+      # Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # Run your tests (npm test or your test command)
-      - name: Run Tests
+      # Run tests
+      - name: Run tests
         run: npm test
 
-      # Optionally, upload test results or artifacts
-      - name: Upload Test Results
-        if: always()  # Always run this step even if tests fail
+      # Optionally, upload test reports or coverage reports as artifacts
+      - name: Upload Test Reports
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
-          path: test-results/  # Adjust this to the location of your test reports
+          name: test-report
+          path: ./test-reports
