@@ -13,11 +13,6 @@ jobs:
   cypress-tests:
     runs-on: ubuntu-latest
 
-    # Use a matrix to test on different versions of Node.js (optional)
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x]
-
     steps:
       # Checkout the code from the repository
       - name: Checkout repository
