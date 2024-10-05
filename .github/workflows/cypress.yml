@@ -1,8 +1,6 @@
-npm install
+name: Run Tests
 
-name: Cypress UI Test
-
-# Triggers the workflow on any push or pull request to all branches
+# Trigger on push or pull request to any branch
 on:
   push:
     branches:
@@ -12,45 +10,42 @@ on:
       - '**'
 
 jobs:
+  # Cypress UI Test job
   cypress-tests:
     runs-on: ubuntu-latest
-
-    # Use a matrix to test on different versions of Node.js (optional)
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
-
+        node-version: [16.x] # Define the Node.js version
     steps:
-      # Checkout the code from the repository
-      - name: Checkout repository
+      # Checkout the code
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      # Set up Node.js with the specified version from the matrix
+      
+      # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
-      # Install NPM dependencies (including Cypress)
+      
+      # Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Start your web application (if applicable) 
-      # (replace with your actual start command if needed)
-      - name: Start the application
+      # Start the web application
+      - name: Start application
         run: npm run start &
       
-      # Wait for the application to start up before running tests
-      - name: Wait for application to start
+      # Wait for the application to be available
+      - name: Wait for the application to start
         run: npx wait-on http://localhost:3000
 
-      # Run Cypress tests
+      # Run Cypress UI tests
       - name: Run Cypress tests
         run: npx cypress run
 
-      # Upload screenshots and videos as artifacts if tests fail (optional)
-      - name: Upload Cypress artifacts (screenshots/videos)
+      # Upload Cypress test artifacts (screenshots and videos) on failure
+      - name: Upload Cypress artifacts
         if: failure()
         uses: actions/upload-artifact@v3
         with:
@@ -58,9 +53,63 @@ jobs:
           path: cypress/screenshots/
 
       # Upload test results as artifacts (optional)
-      - name: Upload test results
+      - name: Upload Cypress results
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: cypress-results
           path: cypress/results/
+
+  # Security Tests (OWASP ZAP)
+  security-tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code (if needed for security scan)
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Run OWASP ZAP Baseline Scan
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.8.0
+        with:
+          target: 'http://localhost:3000' # The target URL of your app
+          cmd_options: '-r zap_report.html -d'
+          fail_action: 'true'
+          output_path: './zap_report.html'
+
+      # Upload ZAP report
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap_report
+          path: zap_report.html
+
+  # API Test Job
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Run API tests (using a test command, e.g., mocha or jest)
+      - name: Run API tests
+        run: npm run test:api
+
+      # Upload API test results (optional)
+      - name: Upload API Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-test-results
+          path: test-results/
