@@ -1,0 +1,79 @@
+name: Test and Deployment Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Cypress UI Tests Job
+  cypress-tests:
+    name: Run Cypress UI Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Cypress Tests
+        run: npm run cypress:run
+
+      - name: Upload Cypress Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: cypress-results
+          path: cypress/results/
+
+  # API Tests Job
+  api-tests:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run API Tests
+        run: npm run api:test # Assuming you have an npm script for API tests
+
+  # Security Tests with ZAP
+  security-tests:
+    name: Run ZAP Security Scans
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Start Application
+        run: npm run start & # Start your app in the background
+
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-full-scan@v0.5.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: 'http://localhost:3000' # Update to the correct app URL
+
+      - name: Upload ZAP Report
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: zap-report
+          path: /home/runner/work/_temp/zap_report.html
